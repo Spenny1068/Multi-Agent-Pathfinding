@@ -99,7 +99,7 @@ def is_constrained(curr_loc, next_loc, next_time, constraint_table):
     #               by time step, see build_constraint_table.
 
     constraints_list = constraint_table.get(next_time)
-    print("constraints_list = ", str(constraints_list))
+    # print("constraints_list = ", str(constraints_list))
 
     if constraints_list == None:
         return False
@@ -108,7 +108,7 @@ def is_constrained(curr_loc, next_loc, next_time, constraint_table):
     for i in range(len(constraints_list)):
         # check for vertex contraint: prohibits agent from being in a given cell at a given time step
         if constraint_table and constraints_list and (next_loc in constraints_list[i]) and len(constraints_list[i]) == 1:
-            print("found vertex sontraint")
+            # print("found vertex sontraint")
             ret = True
 
         # # check for edge constraint: prohibits agent from moving from a given cell to another cell at a given time step
@@ -147,13 +147,21 @@ def a_star(my_map, start_loc, goal_loc, h_values, agent, constraints):
         constraints - constraints defining where robot should or cannot go at each timestep
     """
 
+    # calculate upper bound on path length for an agent
+    environment_size = 0
+    for list in my_map:
+        environment_size += list.count(0)
+
+    path_length_upper_bound = 100
+
     ##############################
     # Task 1.1: Extend the A* search to search in the space-time domain
     #           rather than space domain, only.
 
-    print("running a_star on agent " ,str(agent))
-    print("")
-    print("")
+    # print("running a_star on agent " ,str(agent))
+    # print("")
+    # print("")
+
     # build constraint table
     constraint_table = build_constraint_table(constraints, agent)
 
@@ -167,7 +175,12 @@ def a_star(my_map, start_loc, goal_loc, h_values, agent, constraints):
 
     while len(open_list) > 0:
         curr = pop_node(open_list)
-        print("curr: loc = ", str(curr['loc']), ", ts = ", str(curr['ts']))
+
+        # exceeded path length upper bound
+        if len(get_path(curr)) > path_length_upper_bound:
+            return None
+
+        # print("curr: loc = ", str(curr['loc']), ", ts = ", str(curr['ts']))
         #############################
         # Task 1.4: Adjust the goal test condition to handle goal constraints
         if (curr['loc'] == goal_loc) and (curr['ts'] == earliest_goal_timestep):
@@ -185,10 +198,10 @@ def a_star(my_map, start_loc, goal_loc, h_values, agent, constraints):
                     'parent': curr,
                     'ts': curr['ts'] + 1}
 
-            print("child_loc = ", str(child_loc))
+            # print("child_loc = ", str(child_loc))
             # check whether new node satisfies constraints and prune if it does not
             if is_constrained(curr['loc'], child['loc'], child['ts'], constraint_table):
-                print("is_constrained: loc = ", str(child['loc']), ", ts = ", str(child['ts']))
+                # print("is_constrained: loc = ", str(child['loc']), ", ts = ", str(child['ts']))
                 continue
 
             if (child['loc'], child['ts']) in closed_list:
