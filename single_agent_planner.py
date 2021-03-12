@@ -59,8 +59,16 @@ def build_constraint_table(constraints, agent):
     table = {}
     length = len(constraints)
 
+    # constraints = [ { 'agent': 1, 'loc': [(1, 4)], 'timestep': 2 }, { 'agent': 1, 'loc': [(1, 3)], 'timestep': 2 }, { 'agent': 1, 'loc': [(1, 2)], 'timestep': 2 } ]
+
     for i in range(length):
-        table[constraints[i]['timestep']] = constraints[i]['loc']
+        if constraints[i]['agent'] == agent:
+
+            if constraints[i]['timestep'] in table:
+                table[constraints[i]['timestep']].append(constraints[i]['loc'])
+
+            else:
+                table[constraints[i]['timestep']] = [constraints[i]['loc']]
 
     return table
 
@@ -91,18 +99,30 @@ def is_constrained(curr_loc, next_loc, next_time, constraint_table):
     #               by time step, see build_constraint_table.
 
     constraints_list = constraint_table.get(next_time)
+    print("constraints_list = ", str(constraints_list))
 
-    # check for vertex contraint: prohibits agent from being in a given cell at a given time step
-    if constraint_table and constraints_list and (next_loc in constraints_list) and len(constraints_list) == 1:
-        return True
-
-    # # check for edge constraint: prohibits agent from moving from a given cell to another cell at a given time step
-    elif constraint_table and constraints_list and (curr_loc in constraints_list) and (next_loc in constraints_list):
-        return True
-
-    # no constraints found
-    else:
+    if constraints_list == None:
         return False
+
+    ret = False
+    for i in range(len(constraints_list)):
+        # check for vertex contraint: prohibits agent from being in a given cell at a given time step
+        if constraint_table and constraints_list and (next_loc in constraints_list[i]) and len(constraints_list[i]) == 1:
+            print("found vertex sontraint")
+            ret = True
+
+        # # check for edge constraint: prohibits agent from moving from a given cell to another cell at a given time step
+        elif constraint_table and constraints_list and (curr_loc in constraints_list[i]) and (next_loc in constraints_list[i]):
+            ret = True
+
+        # no constraints found
+        else:
+            ret = False
+
+        if ret:
+            return True
+
+    return False
 
 
 def push_node(open_list, node):
@@ -131,6 +151,9 @@ def a_star(my_map, start_loc, goal_loc, h_values, agent, constraints):
     # Task 1.1: Extend the A* search to search in the space-time domain
     #           rather than space domain, only.
 
+    print("running a_star on agent " ,str(agent))
+    print("")
+    print("")
     # build constraint table
     constraint_table = build_constraint_table(constraints, agent)
 
@@ -144,12 +167,13 @@ def a_star(my_map, start_loc, goal_loc, h_values, agent, constraints):
 
     while len(open_list) > 0:
         curr = pop_node(open_list)
+        print("curr: loc = ", str(curr['loc']), ", ts = ", str(curr['ts']))
         #############################
         # Task 1.4: Adjust the goal test condition to handle goal constraints
         if (curr['loc'] == goal_loc) and (curr['ts'] == earliest_goal_timestep):
             return get_path(curr)
 
-        for dir in range(4):
+        for dir in range(5):
             child_loc = move(curr['loc'], dir)
 
             if my_map[child_loc[0]][child_loc[1]]:
@@ -161,8 +185,10 @@ def a_star(my_map, start_loc, goal_loc, h_values, agent, constraints):
                     'parent': curr,
                     'ts': curr['ts'] + 1}
 
+            print("child_loc = ", str(child_loc))
             # check whether new node satisfies constraints and prune if it does not
             if is_constrained(curr['loc'], child['loc'], child['ts'], constraint_table):
+                print("is_constrained: loc = ", str(child['loc']), ", ts = ", str(child['ts']))
                 continue
 
             if (child['loc'], child['ts']) in closed_list:
