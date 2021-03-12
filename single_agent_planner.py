@@ -97,8 +97,8 @@ def is_constrained(curr_loc, next_loc, next_time, constraint_table):
         return True
 
     # # check for edge constraint: prohibits agent from moving from a given cell to another cell at a given time step
-    # # elif constraint_table and constraints_list and (curr_loc in constraints_list) and (next_loc in constraints_list):
-    # #     return True
+    elif constraint_table and constraints_list and (curr_loc in constraints_list) and (next_loc in constraints_list):
+        return True
 
     # no constraints found
     else:
