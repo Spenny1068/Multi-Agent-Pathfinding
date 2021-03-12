@@ -136,7 +136,7 @@ def a_star(my_map, start_loc, goal_loc, h_values, agent, constraints):
 
     open_list = []
     closed_list = dict()
-    earliest_goal_timestep = 0
+    earliest_goal_timestep = 11
     h_value = h_values[start_loc]
     root = { 'loc': start_loc, 'g_val': 0, 'h_val': h_value, 'parent': None, 'ts': 0 }
     push_node(open_list, root)
@@ -146,7 +146,7 @@ def a_star(my_map, start_loc, goal_loc, h_values, agent, constraints):
         curr = pop_node(open_list)
         #############################
         # Task 1.4: Adjust the goal test condition to handle goal constraints
-        if curr['loc'] == goal_loc:
+        if (curr['loc'] == goal_loc) and (curr['ts'] == earliest_goal_timestep):
             return get_path(curr)
 
         for dir in range(4):
