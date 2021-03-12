@@ -183,11 +183,12 @@ class CBSSolver(object):
 
         while len(self.open_list) > 0:
             P = self.pop_node()
-            print("P = ", str(P))
+            # print("P = ", str(P))
 
             # P is a goal node
-            if len(P['collisions']) == 0:
-                print("goal node found")
+            if not P['collisions']:
+                # print("goal node found")
+                break
                 return P['paths']
             
             # pick first collision in P.collisions
@@ -207,10 +208,10 @@ class CBSSolver(object):
                 a = constraint['agent']
 
                 path = a_star(self.my_map, self.starts[a], self.goals[a], self.heuristics[a], a, Q['constraints'])
-                print("new path for agent ", str(a), " = ", str(path))
-                print("")
+                # print("new path for agent ", str(a), " = ", str(path))
+                # print("")
 
-                if path and len(path) > 0:
+                if path:
 
                     new_path_set = P['paths'].copy()
                     new_path_set[a] = path
@@ -220,8 +221,8 @@ class CBSSolver(object):
                     Q['cost'] = get_sum_of_cost(Q['paths'])
                     self.push_node(Q)
 
-        self.print_results(root)
-        return root['paths']
+        self.print_results(P)
+        return P['paths']
 
 
     def print_results(self, node):

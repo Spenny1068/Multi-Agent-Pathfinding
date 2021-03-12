@@ -23,7 +23,7 @@ def compute_heuristics(my_map, goal):
     closed_list[goal] = root
     while len(open_list) > 0:
         (cost, loc, curr) = heapq.heappop(open_list)
-        for dir in range(4):
+        for dir in range(5):
             child_loc = move(loc, dir)
             child_cost = cost + 1
             if child_loc[0] < 0 or child_loc[0] >= len(my_map) \
@@ -158,16 +158,19 @@ def a_star(my_map, start_loc, goal_loc, h_values, agent, constraints):
     # Task 1.1: Extend the A* search to search in the space-time domain
     #           rather than space domain, only.
 
-    # print("running a_star on agent " ,str(agent))
-    # print("")
-    # print("")
+    # print("my_map = ", str(my_map))
+    print("running a_star on agent " ,str(agent))
+    print("")
+    print("")
+    # print("start_loc = ", str(start_loc))
+    # print("h_values = ", str(h_values))
 
     # build constraint table
     constraint_table = build_constraint_table(constraints, agent)
 
     open_list = []
     closed_list = dict()
-    earliest_goal_timestep = 11
+    earliest_goal_timestep = 14
     h_value = h_values[start_loc]
     root = { 'loc': start_loc, 'g_val': 0, 'h_val': h_value, 'parent': None, 'ts': 0 }
     push_node(open_list, root)
@@ -188,9 +191,15 @@ def a_star(my_map, start_loc, goal_loc, h_values, agent, constraints):
 
         for dir in range(5):
             child_loc = move(curr['loc'], dir)
+            # print("child_loc = ", str(child_loc))
+
+            # no bounds on test maps?
+            if child_loc[0] > (len(my_map) - 1) or child_loc[1] > (len(my_map[0]) - 1) or child_loc[0] < 0 or child_loc[1] < 0:
+                continue
 
             if my_map[child_loc[0]][child_loc[1]]:
                 continue
+
 
             child = {'loc': child_loc,
                     'g_val': curr['g_val'] + 1,
@@ -198,7 +207,6 @@ def a_star(my_map, start_loc, goal_loc, h_values, agent, constraints):
                     'parent': curr,
                     'ts': curr['ts'] + 1}
 
-            # print("child_loc = ", str(child_loc))
             # check whether new node satisfies constraints and prune if it does not
             if is_constrained(curr['loc'], child['loc'], child['ts'], constraint_table):
                 # print("is_constrained: loc = ", str(child['loc']), ", ts = ", str(child['ts']))
