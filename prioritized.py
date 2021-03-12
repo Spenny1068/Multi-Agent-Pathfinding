@@ -28,12 +28,19 @@ class PrioritizedPlanningSolver(object):
 
         start_time = timer.time()
         result = []
-        constraints = [ { 'agent': 0, 'loc': [(1, 5)], 'timestep': 10 } ]
+        constraints = []
 
         # constraint for 1.2
         # { 'agent': 0, 'loc': [(1, 5)], 'timestep': 4 }  
         # constraint for 1.3
         # { 'agent': 1, 'loc': [(1, 2), (1, 3)], 'timestep': 1 }
+        # constraint for 1.4
+        # { 'agent': 0, 'loc': [(1, 5)], 'timestep': 10 }
+        # constraints for 1.5
+        # { 'agent': 1, 'loc': [(1, 4)], 'timestep': 2 }
+        # { 'agent': 1, 'loc': [(1, 3)], 'timestep': 2 }
+        # { 'agent': 1, 'loc': [(1, 2)], 'timestep': 2 }
+
 
         for i in range(self.num_of_agents):  # Find path for each agent
             path = a_star(self.my_map, self.starts[i], self.goals[i], self.heuristics[i],
@@ -49,6 +56,29 @@ class PrioritizedPlanningSolver(object):
             #            * self.num_of_agents has the number of total agents
             #            * constraints: array of constraints to consider for future A* searches
 
+            # push entire solution path of current agent into constraints list for future agents to consider
+            # this handles task 2.3 as well because it adds vertex constraints at all timesteps the agent is sitting at its goal state
+            for ts in range(len(path)):
+
+                # push vertex constraints
+                vertexConstraint_loc = [None] * 1
+                vertexConstraint_loc[0] = path[ts]
+                vertexConstraint = {'agent': i + 1, 'loc': vertexConstraint_loc, 'timestep': ts}
+                constraints.append(vertexConstraint)
+
+                # push edge constraints
+
+                # don't push edge collisions of the form [(1, 4), (1, 4)] 
+                if path[ts - 1] == path[ts]:
+                    continue
+
+                edgeConstraint_loc = [None] * 2
+                edgeConstraint_loc[0] = path[ts - 1]
+                edgeConstraint_loc[1] = path[ts]
+                edgeConstraint = {'agent': i + 1, 'loc': edgeConstraint_loc, 'timestep': ts}
+                constraints.append(edgeConstraint)
+
+            print("constraints for agent ", str(i + 1), " = ", str(constraints))
 
             ##############################
 
