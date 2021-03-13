@@ -101,18 +101,19 @@ def is_constrained(curr_loc, next_loc, next_time, constraint_table):
     constraints_list = constraint_table.get(next_time)
     # print("constraints_list = ", str(constraints_list))
 
-    if constraints_list == None:
+    if not constraints_list:
         return False
 
     ret = False
     for i in range(len(constraints_list)):
+        # print("constraints_list = ", str(constraints_list))
         # check for vertex contraint: prohibits agent from being in a given cell at a given time step
-        if constraint_table and constraints_list and (next_loc in constraints_list[i]) and len(constraints_list[i]) == 1:
+        if constraint_table and constraints_list[i] and (next_loc in constraints_list[i]) and len(constraints_list[i]) == 1:
             # print("found vertex sontraint")
             ret = True
 
         # # check for edge constraint: prohibits agent from moving from a given cell to another cell at a given time step
-        elif constraint_table and constraints_list and (curr_loc in constraints_list[i]) and (next_loc in constraints_list[i]):
+        elif constraint_table and constraints_list[i] and (curr_loc in constraints_list[i]) and (next_loc in constraints_list[i]):
             ret = True
 
         # no constraints found
@@ -161,7 +162,7 @@ def a_star(my_map, start_loc, goal_loc, h_values, agent, constraints):
     # print("my_map = ", str(my_map))
     print("running a_star on agent " ,str(agent))
     print("")
-    print("")
+    # print("")
     # print("start_loc = ", str(start_loc))
     # print("h_values = ", str(h_values))
 
@@ -170,7 +171,7 @@ def a_star(my_map, start_loc, goal_loc, h_values, agent, constraints):
 
     open_list = []
     closed_list = dict()
-    earliest_goal_timestep = 14
+    earliest_goal_timestep = 10
     h_value = h_values[start_loc]
     root = { 'loc': start_loc, 'g_val': 0, 'h_val': h_value, 'parent': None, 'ts': 0 }
     push_node(open_list, root)
@@ -183,15 +184,15 @@ def a_star(my_map, start_loc, goal_loc, h_values, agent, constraints):
         if len(get_path(curr)) > path_length_upper_bound:
             return None
 
-        # print("curr: loc = ", str(curr['loc']), ", ts = ", str(curr['ts']))
+        print("curr: loc = ", str(curr['loc']), ", ts = ", str(curr['ts']))
         #############################
         # Task 1.4: Adjust the goal test condition to handle goal constraints
-        if (curr['loc'] == goal_loc) and (curr['ts'] == earliest_goal_timestep):
+        if (curr['loc'] == goal_loc) and (curr['ts'] > earliest_goal_timestep):
+            print("curr[ts] = ", str(curr['ts']))
             return get_path(curr)
 
         for dir in range(5):
             child_loc = move(curr['loc'], dir)
-            # print("child_loc = ", str(child_loc))
 
             # no bounds on test maps?
             if child_loc[0] > (len(my_map) - 1) or child_loc[1] > (len(my_map[0]) - 1) or child_loc[0] < 0 or child_loc[1] < 0:
@@ -206,6 +207,7 @@ def a_star(my_map, start_loc, goal_loc, h_values, agent, constraints):
                     'h_val': h_values[child_loc],
                     'parent': curr,
                     'ts': curr['ts'] + 1}
+            # print("child_loc = ", str(child['loc']), ", child_ts = ", str(child['ts']))
 
             # check whether new node satisfies constraints and prune if it does not
             if is_constrained(curr['loc'], child['loc'], child['ts'], constraint_table):
