@@ -72,8 +72,6 @@ def standard_splitting(collision):
     #                          specified timestep, and the second constraint prevents the second agent to traverse the
     #                          specified edge at the specified timestep
 
-    print("function --> standard_splitting")
-    print("collision = ", str(collision))
     # edge constraint
     if len(collision['loc']) > 1:
         constraint_1 = { 'agent': collision['a1'], 'loc': collision['loc'], 'timestep': collision['timestep'], 'positive': False }
@@ -100,11 +98,9 @@ def disjoint_splitting(collision):
     #                          specified edge at the specified timestep
     #           Choose the agent randomly
 
-    # print("function --> disjoint_splitting")
     rand_agent = random.randint(0, 1)
     other_agent = 1 if rand_agent == 0 else 0
 
-    # print("collision = ", str(collision))
     # edge constraint
     if len(collision['loc']) > 1:
         constraint_1 = { 'agent': rand_agent, 'loc': collision['loc'], 'timestep': collision['timestep'], 'positive': True }
@@ -174,6 +170,15 @@ class CBSSolver(object):
         self.num_of_expanded += 1
         return node
 
+    def remove_goal_duplicates(self, path):
+        for i in range(len(path)):
+            while path[i][-1] == path[i][-2]:
+                if len(path[i]) == 2:
+                    break
+                path[i].pop(-2)
+
+        return path
+
     def find_solution(self, disjoint=True):
         """ Finds paths for all agents from their start locations to their goal locations
 
@@ -203,13 +208,12 @@ class CBSSolver(object):
         self.push_node(root)
 
         # Task 3.1: Testing
-        # print("root[collisions] = ", str(root['collisions']))
+        print("root[collisions] = ", str(root['collisions']))
 
         # Task 3.2: Testing
-        # for collision in root['collisions']:
-        #     print("root[collisions]: ", str(standard_splitting(collision)))
+        for collision in root['collisions']:
+            print("root[collisions]: ", str(standard_splitting(collision)))
 
-        # print("")
         ##############################
         # Task 3.3: High-Level Search
         #           Repeat the following as long as the open list is not empty:
@@ -221,14 +225,11 @@ class CBSSolver(object):
 
         while len(self.open_list) > 0:
             P = self.pop_node()
-            # print("P = ", str(P))
-
+            
             # P is a goal node
             if not P['collisions']:
-                print("goal node found")
-                print("p[paths] = ")
-                for s in range(len(P['paths'])):
-                    print("agent ", str(s), " = ", str(P['paths'][s]))
+                wee = self.remove_goal_duplicates(P['paths'])
+                P['paths'] = wee
                 self.print_results(P)
                 return P['paths']
             
@@ -300,11 +301,6 @@ class CBSSolver(object):
                 # add this constraint on top of the old sete of constraints
                 # find the agent corresponding to this constraint and find all agents that violate the constraint
                 # find a new path for all these agent with the new set of constraints
-
-
-                # print("new path for agent ", str(a), " = ", str(path))
-                # print("")
-
 
         return None
 

@@ -139,6 +139,17 @@ def compare_nodes(n1, n2):
     """Return true is n1 is better than n2."""
     return n1['g_val'] + n1['h_val'] < n2['g_val'] + n2['h_val']
 
+def remove_goal_duplicates(path):
+    print("path before: ")
+    print(str(path))
+
+    if path[len(path) - 1] == path[len(path) - 2]:
+        del path[len(path) - 2]
+
+    print("path after: ")
+    print(str(path))
+    return path
+
 
 def a_star(my_map, start_loc, goal_loc, h_values, agent, constraints):
     """ my_map      - binary obstacle map
@@ -160,12 +171,22 @@ def a_star(my_map, start_loc, goal_loc, h_values, agent, constraints):
     #           rather than space domain, only.
 
     # print("my_map = ", str(my_map))
-    print("running a_star on agent " ,str(agent))
+    print("running a_star on agent ", str(agent))
     print("")
     # print("")
     # print("start_loc = ", str(start_loc))
     # print("h_values = ", str(h_values))
 
+    # find biggest ts in constraints list for this agent
+    # constraints =  [{'agent': 1, 'loc': [(1, 4)], 'timestep': 3, 'positive': False}, {'agent': 1, 'loc': [(1, 3), (1, 4)], 'timestep': 3, 'positive': False}, {'agent': 1, 'loc': [(1, 4), (1, 5)], 'timestep': 4
+
+    wee = 0
+    for c in constraints:
+        if c['agent'] == agent and c['timestep'] > wee:
+            wee = c['timestep']
+
+    earliest_goal_timestep = wee
+    print("constraints = ", str(constraints))
     # build constraint table
     constraint_table = build_constraint_table(constraints, agent)
 
@@ -184,12 +205,13 @@ def a_star(my_map, start_loc, goal_loc, h_values, agent, constraints):
         if len(get_path(curr)) > path_length_upper_bound:
             return None
 
-        print("curr: loc = ", str(curr['loc']), ", ts = ", str(curr['ts']))
+        # print("curr: loc = ", str(curr['loc']), ", ts = ", str(curr['ts']))
+
         #############################
         # Task 1.4: Adjust the goal test condition to handle goal constraints
         if (curr['loc'] == goal_loc) and (curr['ts'] > earliest_goal_timestep):
-            print("curr[ts] = ", str(curr['ts']))
-            return get_path(curr)
+            a = remove_goal_duplicates(get_path(curr))
+            return a
 
         for dir in range(5):
             child_loc = move(curr['loc'], dir)
