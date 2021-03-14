@@ -172,9 +172,9 @@ class CBSSolver(object):
 
     def remove_goal_duplicates(self, path):
         for i in range(len(path)):
+            if len(path[i]) <= 2:
+                break
             while path[i][-1] == path[i][-2]:
-                if len(path[i]) == 2:
-                    break
                 path[i].pop(-2)
 
         return path
@@ -259,7 +259,6 @@ class CBSSolver(object):
                     path = a_star(self.my_map, self.starts[a], self.goals[a], self.heuristics[a], a, Q['constraints'])
 
                     if path:
-
                         new_path_set = P['paths'].copy()
                         new_path_set[a] = path
 
@@ -267,6 +266,8 @@ class CBSSolver(object):
                         # Q['collisions'] = detect_collisions(Q['paths'])
                         # Q['cost'] = get_sum_of_cost(Q['paths'])
                         # self.push_node(Q)
+                    else: 
+                        continue
 
                 else:
 
@@ -276,12 +277,14 @@ class CBSSolver(object):
                     for i in range(len(agent_ids)):
                         path = a_star(self.my_map, self.starts[i], self.goals[i], self.heuristics[i], i, Q['constraints'])
 
-                        if path == None:
-                            update = False
+                        if path:
+                            # update all paths
+                            new_path_set = P['paths'].copy()
+                            new_path_set[i] = path
 
-                        # update all paths
-                        new_path_set = P['paths'].copy()
-                        new_path_set[i] = path
+                        else:
+                            update = False
+                            # continue
 
                 Q['paths'] = new_path_set
                 Q['collisions'] = detect_collisions(Q['paths'])
