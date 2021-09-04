@@ -28,7 +28,7 @@ class PrioritizedPlanningSolver(object):
 
         start_time = timer.time()
         result = []
-        constraints = []
+        constraints = [{ 'agent': 1, 'loc': [(1, 4)], 'timestep': 2, 'positive': False }, { 'agent': 1, 'loc': [(1, 3)], 'timestep': 2, 'positive': False }, { 'agent': 1, 'loc': [(1, 2)], 'timestep': 2, 'positive': False }]
 
         # constraint for 1.2
         # { 'agent': 0, 'loc': [(1, 5)], 'timestep': 4 }  
@@ -63,7 +63,7 @@ class PrioritizedPlanningSolver(object):
                 # push vertex constraints
                 vertexConstraint_loc = [None] * 1
                 vertexConstraint_loc[0] = path[ts]
-                vertexConstraint = {'agent': i + 1, 'loc': vertexConstraint_loc, 'timestep': ts}
+                vertexConstraint = {'agent': i + 1, 'loc': vertexConstraint_loc, 'timestep': ts, 'positive': False}
                 constraints.append(vertexConstraint)
 
                 # push edge constraints
@@ -75,10 +75,10 @@ class PrioritizedPlanningSolver(object):
                 edgeConstraint_loc = [None] * 2
                 edgeConstraint_loc[0] = path[ts - 1]
                 edgeConstraint_loc[1] = path[ts]
-                edgeConstraint = {'agent': i + 1, 'loc': edgeConstraint_loc, 'timestep': ts}
+                edgeConstraint = {'agent': i + 1, 'loc': edgeConstraint_loc, 'timestep': ts, 'positive': False}
                 constraints.append(edgeConstraint)
 
-            print("constraints for agent ", str(i + 1), " = ", str(constraints))
+            # print("constraints for agent ", str(i + 1), " = ", str(constraints))
 
             ##############################
 

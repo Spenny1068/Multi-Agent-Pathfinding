@@ -14,7 +14,7 @@ def detect_collision(path1, path2):
 
     pair_loc1 = [None] * 2
     pair_loc2 = [None] * 2
-    for ts in range(20):
+    for ts in range(max(len(path1), len(path2))):
 
         pair_loc1[0] = get_location(path1, ts)
         pair_loc1[1] = get_location(path1, ts + 1)
@@ -98,19 +98,19 @@ def disjoint_splitting(collision):
     #                          specified edge at the specified timestep
     #           Choose the agent randomly
 
-    rand_agent = random.randint(0, 1)
-    other_agent = 1 if rand_agent == 0 else 0
+    rand_int = random.randint(0, 1)
+    rand_agent = collision['a1'] if rand_int == 0 else collision['a2']
 
     # edge constraint
     if len(collision['loc']) > 1:
         constraint_1 = { 'agent': rand_agent, 'loc': collision['loc'], 'timestep': collision['timestep'], 'positive': True }
-        constraint_2 = { 'agent': other_agent, 'loc': collision['loc'], 'timestep': collision['timestep'], 'positive': False}
+        constraint_2 = { 'agent': rand_agent, 'loc': collision['loc'], 'timestep': collision['timestep'], 'positive': False}
         new_constraints = [constraint_1, constraint_2]
 
     # vertex constraint
     else:
         constraint_1 = { 'agent': rand_agent, 'loc': collision['loc'], 'timestep': collision['timestep'], 'positive': True }
-        constraint_2 = { 'agent': other_agent, 'loc': collision['loc'], 'timestep': collision['timestep'], 'positive': False }
+        constraint_2 = { 'agent': rand_agent, 'loc': collision['loc'], 'timestep': collision['timestep'], 'positive': False }
         new_constraints = [constraint_1, constraint_2]
 
     return new_constraints
@@ -170,14 +170,6 @@ class CBSSolver(object):
         self.num_of_expanded += 1
         return node
 
-    def remove_goal_duplicates(self, path):
-        for i in range(len(path)):
-            if len(path[i]) <= 2:
-                break
-            while path[i][-1] == path[i][-2]:
-                path[i].pop(-2)
-
-        return path
 
     def find_solution(self, disjoint=True):
         """ Finds paths for all agents from their start locations to their goal locations
@@ -225,11 +217,9 @@ class CBSSolver(object):
 
         while len(self.open_list) > 0:
             P = self.pop_node()
-            
+
             # P is a goal node
             if not P['collisions']:
-                wee = self.remove_goal_duplicates(P['paths'])
-                P['paths'] = wee
                 self.print_results(P)
                 return P['paths']
             
@@ -241,50 +231,74 @@ class CBSSolver(object):
             else:
                 constraints = standard_splitting(collision)
 
-            # for each constraint
             for constraint in constraints:
-                new_constraint_set = P['constraints'].copy()      # previous constraints
-                new_constraint_set.append(constraint)             # add the new constraint
-
-                Q = {'cost': 0,
-                     'constraints': new_constraint_set,
-                     'paths': P['paths'],
-                     'collisions': []}
-                    
-                a = constraint['agent']
-
                 update = True
 
+                # deal with positive constraints
                 if constraint['positive'] == False:
+
+                    new_constraint_set = P['constraints'].copy()      # previous constraints
+                    new_constraint_set.append(constraint)             # add the new constraint
+
+                    Q = {'cost': 0,
+                        'constraints': new_constraint_set,
+                        'paths': P['paths'],
+                        'collisions': []}
+                        
+                    a = constraint['agent']
                     path = a_star(self.my_map, self.starts[a], self.goals[a], self.heuristics[a], a, Q['constraints'])
 
                     if path:
                         new_path_set = P['paths'].copy()
                         new_path_set[a] = path
 
-                        # Q['paths'] = new_path_set
-                        # Q['collisions'] = detect_collisions(Q['paths'])
-                        # Q['cost'] = get_sum_of_cost(Q['paths'])
-                        # self.push_node(Q)
                     else: 
-                        continue
+                        update = True
 
+                # deal with negative constraints
                 else:
 
-                    agent_ids = paths_violate_constraint(constraint, P['paths'])
-                    agent_ids.append(a)
+                    # find the new shortest path for the agent with a newly imposed positive constraint
+                    new_constraint_set = P['constraints'].copy()      # previous constraints
+                    new_constraint_set.append(constraint)             # add the new constraint
+                    new_path_set = P['paths'].copy()
 
-                    for i in range(len(agent_ids)):
-                        path = a_star(self.my_map, self.starts[i], self.goals[i], self.heuristics[i], i, Q['constraints'])
+                    Q = {'cost': 0,
+                        'constraints': new_constraint_set,
+                        'paths': P['paths'],
+                        'collisions': P['collisions']}
+                        
+                    a = constraint['agent']
+                    path = a_star(self.my_map, self.starts[a], self.goals[a], self.heuristics[a], a, new_constraint_set)
+
+                    if path:
+                        new_path_set[a] = path
+
+                    # find the new shortest paths for all the agents that conflict with the newly imposed positive constraint
+                    agent_ids = paths_violate_constraint(constraint, P['paths'])
+
+                    for x in agent_ids:
+                        new_constraint_set = P['constraints'].copy()      # previous constraints
+
+                        # we want this constraint to be the same as the positive constraint, except negative
+                        constraint['positive'] = False
+                        constraint['agent'] = x
+
+                        new_constraint_set.append(constraint)      # add the new constraint
+
+                        Q = {'cost': 0,
+                            'constraints': new_constraint_set,
+                            'paths': P['paths'],
+                            'collisions': P['collisions']}
+
+                        path = a_star(self.my_map, self.starts[x], self.goals[x], self.heuristics[x], x, new_constraint_set) 
 
                         if path:
                             # update all paths
-                            new_path_set = P['paths'].copy()
-                            new_path_set[i] = path
+                            new_path_set[x] = path
 
                         else:
                             update = False
-                            # continue
 
                 Q['paths'] = new_path_set
                 Q['collisions'] = detect_collisions(Q['paths'])
@@ -292,18 +306,6 @@ class CBSSolver(object):
 
                 if update == True:
                     self.push_node(Q)
-
-
-                # if the constraint is negative
-                # add this constraint on top of the old set of constraints
-                # find the agent corresponding to this constraint
-                # find a new path for this agent with the new set of constraints
-
-
-                # if the constraint is positive
-                # add this constraint on top of the old sete of constraints
-                # find the agent corresponding to this constraint and find all agents that violate the constraint
-                # find a new path for all these agent with the new set of constraints
 
         return None
 
