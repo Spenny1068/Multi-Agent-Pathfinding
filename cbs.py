@@ -161,12 +161,12 @@ class CBSSolver(object):
 
     def push_node(self, node):
         heapq.heappush(self.open_list, (node['cost'], len(node['collisions']), self.num_of_generated, node))
-        print("Generate node {}".format(self.num_of_generated))
+        # print("Generate node {}".format(self.num_of_generated))
         self.num_of_generated += 1
 
     def pop_node(self):
         _, _, id, node = heapq.heappop(self.open_list)
-        print("Expand node {}".format(id))
+        # print("Expand node {}".format(id))
         self.num_of_expanded += 1
         return node
 
@@ -198,13 +198,6 @@ class CBSSolver(object):
         root['cost'] = get_sum_of_cost(root['paths'])
         root['collisions'] = detect_collisions(root['paths'])
         self.push_node(root)
-
-        # Task 3.1: Testing
-        print("root[collisions] = ", str(root['collisions']))
-
-        # Task 3.2: Testing
-        for collision in root['collisions']:
-            print("root[collisions]: ", str(standard_splitting(collision)))
 
         ##############################
         # Task 3.3: High-Level Search
