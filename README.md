@@ -1,9 +1,15 @@
 # Visual demonstration of solving Multi-Agent-Pathfinding (MAPF) problems
 ![](1.gif)
 ### What is happening
-* Given several independent agents (in this case 7), the program will solve multi-agent pathfinding (MAPF) problem, and animate the solution path for each agent. 
-* The solution to the MAPF problem found by the program is optimal (shortest paths for each agent and shortest running time possible) 
-* **Inspiration**: Amazon warehouse AI robots: https://www.youtube.com/watch?v=HSA5Bq-1fU4  @ 33 seconds in
+* Given several independent agents (in this case 7), the program will solve multi-agent pathfinding (MAPF) problem, and animate the solution path for each agent.
+* Each agent is travelling along the optimal path (shortest path & shortest running time possible) from its start to destination.
+* *Inspiration**: Amazon warehouse AI robots: https://www.youtube.com/watch?v=HSA5Bq-1fU4  @ 33 seconds in
+
+### What is the Multi-Agent-Pathfinding (MAPF) problem?
+* MAPF is an optimization problem in the field of AI.
+* It involves finding the optimal collision-free path for multiple agents in an environment while considering their individual goals and constraints
+* MAPF is search problem, typically solved using algorithms like A* search, Dijkstra's algorithm, or variants specifically designed for multi-agent scenarios.
+* MAPF is a computationally challenging problem, especially when the environment is complex, and there are many agents with conflicting goals and constraints.
 
 ### Running the demo
 Run the program like so:
